@@ -1,0 +1,48 @@
+{
+	"name": "DestinationDataset_tqp",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "RACDOTDB_MSSQL",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "record_id",
+				"type": "varchar",
+				"precision": 0,
+				"scale": 0
+			},
+			{
+				"name": "integration_name",
+				"type": "varchar",
+				"precision": 0,
+				"scale": 0
+			},
+			{
+				"name": "status",
+				"type": "varchar",
+				"precision": 0,
+				"scale": 0
+			},
+			{
+				"name": "remarks",
+				"type": "varchar",
+				"precision": 0,
+				"scale": 0
+			},
+			{
+				"name": "refresh_timestamp",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "kpi_details_proj1_destination"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,9 @@
+{
+	"name": "Alert-Platform-ADF-Test",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "c20a0395-3a6e-4b30-8d60-894b785996d6",
+		"tenantId": "48c24d34-d395-4fda-aef9-4ce746eb987f"
+	}
+}

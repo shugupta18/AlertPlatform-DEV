@@ -1,0 +1,16 @@
+{
+	"name": "DS_AzureSQL_Metadata",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_ITHAlertPlatform",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "ITH-AlertPlatform-Prod"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

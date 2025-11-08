@@ -1,0 +1,119 @@
+{
+	"name": "PL_KPI_Indecab_Dashboard",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_Last_Run",
+				"description": "Get last successful started_at (UTC)",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Create_Run",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT TOP 1 started_at\nFROM dbo.dashboard_run\nWHERE pipeline_name = 'PL_KPI_Indecab_Dashboard'\n  AND run_status = 'Success'\nORDER BY started_at DESC;\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_AzureSQL_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Set_last_started",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Last_Run",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "last_started",
+					"value": {
+						"value": "@coalesce(activity('Lookup_Last_Run').output.firstRow.started_at, '1900-01-01T00:00:00Z')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Create_Run",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[sp_create_dashboard_run]",
+					"storedProcedureParameters": {
+						"run_id": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"integration_name": {
+							"value": "Indecab_Dashboard",
+							"type": "String"
+						},
+						"pipeline_name": {
+							"value": "PL_KPI_Indecab_Dashboard",
+							"type": "String"
+						},
+						"started_at": {
+							"value": {
+								"value": "@utcNow()",
+								"type": "Expression"
+							},
+							"type": "Datetime"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_ITHAlertPlatform",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"variables": {
+			"last_started": {
+				"type": "String"
+			},
+			"new_started": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-08T08:58:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

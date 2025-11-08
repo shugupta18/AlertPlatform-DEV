@@ -1,0 +1,53 @@
+{
+	"name": "SqlServerTable1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "RACDOTDB_MSSQL",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "booking_no",
+				"type": "nvarchar"
+			},
+			{
+				"name": "state",
+				"type": "nvarchar"
+			},
+			{
+				"name": "renter_fname",
+				"type": "nvarchar"
+			},
+			{
+				"name": "renter_lname",
+				"type": "nvarchar"
+			},
+			{
+				"name": "renter_email",
+				"type": "nvarchar"
+			},
+			{
+				"name": "inserted_at",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "odoo_sale_order_sync_TEST"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
