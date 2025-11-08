@@ -1,5 +1,5 @@
 {
-	"name": "DS_ADLS_Parquet",
+	"name": "DS_ADLS_Indecab_Duty_Incoming_Request_Events",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_ADLS_ITH_AlertPlatform",
@@ -13,7 +13,8 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"folderPath": "ITH",
+				"fileName": "Indecab_Network_Requests",
+				"folderPath": "ITH/Staging",
 				"fileSystem": "alertplatform"
 			},
 			"compressionCodec": "snappy"
