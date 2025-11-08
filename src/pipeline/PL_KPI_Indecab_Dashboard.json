@@ -182,7 +182,7 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "@concat(\n    'SELECT * FROM [dbo].[Indecab_duty_incoming_request_events] WHERE CDAT >= CAST((CAST(''',\n    json(variables('create_run_output_indecab')).last_run_at,\n    ''' AS DATETIME2) AT TIME ZONE ''UTC'' AT TIME ZONE ''India Standard Time'') AS DATETIME)'\n)\n",
+							"value": "@concat(\n    'SELECT * FROM [dbo].[Indecab_duty_incoming_request_events] WHERE CDAT >= ''', \n    json(variables('create_run_output_indecab')).last_run_at_ist,\n    ''''\n)\n",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
