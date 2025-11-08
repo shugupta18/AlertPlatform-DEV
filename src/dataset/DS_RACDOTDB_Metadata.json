@@ -1,0 +1,15 @@
+{
+	"name": "DS_RACDOTDB_Metadata",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_MSSQL_RACDOTDB",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "ITH-AlertPlatform-Prod"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	}
+}

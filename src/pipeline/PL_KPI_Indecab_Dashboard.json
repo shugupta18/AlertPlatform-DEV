@@ -62,7 +62,14 @@
 			{
 				"name": "Create_Run",
 				"type": "SqlServerStoredProcedure",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Copy_network_requests_Indecab",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -102,6 +109,117 @@
 					"referenceName": "LS_AzureSQL_ITHAlertPlatform",
 					"type": "LinkedServiceReference"
 				}
+			},
+			{
+				"name": "Create_Run_Indecab",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[sp_create_dashboard_run]",
+						"storedProcedureParameters": {
+							"integration_name": {
+								"type": "String",
+								"value": "Indecab_Dashboard"
+							},
+							"pipeline_name": {
+								"type": "String",
+								"value": "PL_KPI_Indecab_Dashboard"
+							},
+							"run_id": {
+								"type": "Guid",
+								"value": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								}
+							},
+							"started_at": {
+								"type": "DateTime",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_AzureSQL_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Copy_network_requests_Indecab",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set_create_run_output_indecab",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "@concat(\n    'SELECT * FROM [dbo].[Indecab_duty_incoming_request_events] WHERE CDAT >= ''',\n    json(variables('create_run_output_indecab')).last_run_at,\n    ''''\n)\n",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_RACDOTDB_Metadata",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Set_create_run_output_indecab",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Create_Run_Indecab",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "create_run_output_indecab",
+					"value": {
+						"value": "@string(activity('Create_Run_Indecab').output.firstRow)",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"variables": {
@@ -109,6 +227,9 @@
 				"type": "String"
 			},
 			"new_started": {
+				"type": "String"
+			},
+			"create_run_output_indecab": {
 				"type": "String"
 			}
 		},
