@@ -15,7 +15,7 @@
 				"type": "AzureBlobFSLocation",
 				"fileName": "Indecab_Network_Requests.parquet",
 				"folderPath": "ITH/Staging",
-				"fileSystem": "alertplatform"
+				"fileSystem": "synapsecontainer"
 			},
 			"compressionCodec": "snappy"
 		},
