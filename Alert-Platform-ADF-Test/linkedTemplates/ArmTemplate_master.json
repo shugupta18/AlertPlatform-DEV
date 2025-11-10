@@ -1,0 +1,175 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "Alert-Platform-ADF-Test"
+		},
+		"LS_ADLS_ITH_AlertPlatform_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'LS_ADLS_ITH_AlertPlatform'"
+		},
+		"LS_AzureSQL_ITHAlertPlatform_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_AzureSQL_ITHAlertPlatform'"
+		},
+		"LS_MSSQL_RACDOTDB_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_MSSQL_RACDOTDB'"
+		},
+		"Odoo_PostgreSql_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'Odoo_PostgreSql'"
+		},
+		"RACDOTDB_MSSQL_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'RACDOTDB_MSSQL'"
+		},
+		"LS_ADLS_ITH_AlertPlatform_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://dotpladlsv2.dfs.core.windows.net/"
+		},
+		"LS_AzureSQL_ITHAlertPlatform_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "alert-platform-sql-server.database.windows.net"
+		},
+		"LS_AzureSQL_ITHAlertPlatform_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "ITH-AlertPlatform-ProdDB"
+		},
+		"LS_AzureSQL_ITHAlertPlatform_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "azureadmin"
+		},
+		"LS_MSSQL_RACDOTDB_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "164.52.216.126"
+		},
+		"LS_MSSQL_RACDOTDB_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "RACDOTDB"
+		},
+		"LS_MSSQL_RACDOTDB_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "RACPRO"
+		},
+		"LS_SynapseArtifacts_properties_typeProperties_endpoint": {
+			"type": "string",
+			"defaultValue": "https://synapse-workspace-dotpl.dev.azuresynapse.net"
+		},
+		"Odoo_PostgreSql_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "216.48.184.195"
+		},
+		"Odoo_PostgreSql_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "ithfleet"
+		},
+		"Odoo_PostgreSql_properties_typeProperties_username": {
+			"type": "string",
+			"defaultValue": "adf_reader"
+		},
+		"RACDOTDB_MSSQL_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "164.52.216.126"
+		},
+		"RACDOTDB_MSSQL_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "RACDOTDB"
+		},
+		"RACDOTDB_MSSQL_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "RACPRO"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "Alert-Platform-ADF-Test_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"LS_ADLS_ITH_AlertPlatform_accountKey": {
+						"value": "[parameters('LS_ADLS_ITH_AlertPlatform_accountKey')]"
+					},
+					"LS_AzureSQL_ITHAlertPlatform_password": {
+						"value": "[parameters('LS_AzureSQL_ITHAlertPlatform_password')]"
+					},
+					"LS_MSSQL_RACDOTDB_password": {
+						"value": "[parameters('LS_MSSQL_RACDOTDB_password')]"
+					},
+					"Odoo_PostgreSql_password": {
+						"value": "[parameters('Odoo_PostgreSql_password')]"
+					},
+					"RACDOTDB_MSSQL_password": {
+						"value": "[parameters('RACDOTDB_MSSQL_password')]"
+					},
+					"LS_ADLS_ITH_AlertPlatform_properties_typeProperties_url": {
+						"value": "[parameters('LS_ADLS_ITH_AlertPlatform_properties_typeProperties_url')]"
+					},
+					"LS_AzureSQL_ITHAlertPlatform_properties_typeProperties_server": {
+						"value": "[parameters('LS_AzureSQL_ITHAlertPlatform_properties_typeProperties_server')]"
+					},
+					"LS_AzureSQL_ITHAlertPlatform_properties_typeProperties_database": {
+						"value": "[parameters('LS_AzureSQL_ITHAlertPlatform_properties_typeProperties_database')]"
+					},
+					"LS_AzureSQL_ITHAlertPlatform_properties_typeProperties_userName": {
+						"value": "[parameters('LS_AzureSQL_ITHAlertPlatform_properties_typeProperties_userName')]"
+					},
+					"LS_MSSQL_RACDOTDB_properties_typeProperties_server": {
+						"value": "[parameters('LS_MSSQL_RACDOTDB_properties_typeProperties_server')]"
+					},
+					"LS_MSSQL_RACDOTDB_properties_typeProperties_database": {
+						"value": "[parameters('LS_MSSQL_RACDOTDB_properties_typeProperties_database')]"
+					},
+					"LS_MSSQL_RACDOTDB_properties_typeProperties_userName": {
+						"value": "[parameters('LS_MSSQL_RACDOTDB_properties_typeProperties_userName')]"
+					},
+					"LS_SynapseArtifacts_properties_typeProperties_endpoint": {
+						"value": "[parameters('LS_SynapseArtifacts_properties_typeProperties_endpoint')]"
+					},
+					"Odoo_PostgreSql_properties_typeProperties_server": {
+						"value": "[parameters('Odoo_PostgreSql_properties_typeProperties_server')]"
+					},
+					"Odoo_PostgreSql_properties_typeProperties_database": {
+						"value": "[parameters('Odoo_PostgreSql_properties_typeProperties_database')]"
+					},
+					"Odoo_PostgreSql_properties_typeProperties_username": {
+						"value": "[parameters('Odoo_PostgreSql_properties_typeProperties_username')]"
+					},
+					"RACDOTDB_MSSQL_properties_typeProperties_server": {
+						"value": "[parameters('RACDOTDB_MSSQL_properties_typeProperties_server')]"
+					},
+					"RACDOTDB_MSSQL_properties_typeProperties_database": {
+						"value": "[parameters('RACDOTDB_MSSQL_properties_typeProperties_database')]"
+					},
+					"RACDOTDB_MSSQL_properties_typeProperties_userName": {
+						"value": "[parameters('RACDOTDB_MSSQL_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
