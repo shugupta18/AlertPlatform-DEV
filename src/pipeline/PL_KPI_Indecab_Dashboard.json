@@ -264,7 +264,40 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"snapshot": true
+					"notebook": {
+						"referenceName": {
+							"value": "Indecab_notebook",
+							"type": "Expression"
+						},
+						"type": "NotebookReference"
+					},
+					"parameters": {
+						"last_run_at_ist": {
+							"value": {
+								"value": "@json(variables('create_run_output_indecab')).last_run_at_ist",
+								"type": "Expression"
+							},
+							"type": "string"
+						}
+					},
+					"snapshot": true,
+					"sparkPool": {
+						"referenceName": {
+							"value": "sparkkpi",
+							"type": "Expression"
+						},
+						"type": "BigDataPoolReference"
+					},
+					"conf": {
+						"spark.dynamicAllocation.enabled": null,
+						"spark.dynamicAllocation.minExecutors": null,
+						"spark.dynamicAllocation.maxExecutors": null
+					},
+					"numExecutors": null
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_SynapseArtifacts",
+					"type": "LinkedServiceReference"
 				}
 			}
 		],
