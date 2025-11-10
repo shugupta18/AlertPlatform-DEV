@@ -14,7 +14,7 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": "Indecab_Network_Requests.parquet",
-				"folderPath": "Staging/ITH/Indecab_Dashboard",
+				"folderPath": "synapse/Staging/ITH/Indecab_Dashboard",
 				"fileSystem": "synapsecontainer"
 			},
 			"compressionCodec": "snappy"
