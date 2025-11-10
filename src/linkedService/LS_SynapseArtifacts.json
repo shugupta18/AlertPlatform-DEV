@@ -1,0 +1,12 @@
+{
+	"name": "LS_SynapseArtifacts",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSynapseArtifacts",
+		"typeProperties": {
+			"endpoint": "https://synapse-workspace-dotpl.dev.azuresynapse.net",
+			"authentication": "MSI",
+			"workspaceResourceId": "/subscriptions/42f20fa9-3073-4ab8-9009-ee5b9e3edadc/resourceGroups/dotpl/providers/Microsoft.Synapse/workspaces/synapse-workspace-dotpl"
+		}
+	}
+}
