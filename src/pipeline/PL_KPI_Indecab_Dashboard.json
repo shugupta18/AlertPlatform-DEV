@@ -182,10 +182,10 @@
 					},
 					"conf": {
 						"spark.dynamicAllocation.enabled": false,
-						"spark.dynamicAllocation.minExecutors": 2,
-						"spark.dynamicAllocation.maxExecutors": 2
+						"spark.dynamicAllocation.minExecutors": 1,
+						"spark.dynamicAllocation.maxExecutors": 1
 					},
-					"numExecutors": 2
+					"numExecutors": 1
 				},
 				"linkedServiceName": {
 					"referenceName": "LS_SynapseArtifacts",
