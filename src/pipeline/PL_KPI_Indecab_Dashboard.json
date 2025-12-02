@@ -261,9 +261,9 @@
 				"typeProperties": {
 					"scripts": [
 						{
-							"type": "Query",
+							"type": "NonQuery",
 							"text": {
-								"value": "SELECT SYSTEM_USER, SUSER_SNAME();\n",
+								"value": "select SUSER_NAME() sn;",
 								"type": "Expression"
 							}
 						}
