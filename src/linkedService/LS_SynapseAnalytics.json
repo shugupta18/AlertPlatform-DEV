@@ -1,0 +1,14 @@
+{
+	"name": "LS_SynapseAnalytics",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"server": "synapse-workspace-dotpl-ondemand.sql.azuresynapse.net",
+			"database": "master",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SystemAssignedManagedIdentity"
+		}
+	}
+}
