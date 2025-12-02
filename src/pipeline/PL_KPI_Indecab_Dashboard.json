@@ -261,9 +261,9 @@
 				"typeProperties": {
 					"scripts": [
 						{
-							"type": "NonQuery",
+							"type": "Query",
 							"text": {
-								"value": "select SUSER_NAME() sn;",
+								"value": "SELECT TOP 1 * \nFROM OPENROWSET(\n  BULK 'https://dotpladlsv2.blob.core.windows.net/synapsecontainer/aggregates/Indecab_Network_Requests_Agg/part-00000.parquet',\n  FORMAT='PARQUET'\n) AS t;\n",
 								"type": "Expression"
 							}
 						}
