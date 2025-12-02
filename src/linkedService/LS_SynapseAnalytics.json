@@ -5,7 +5,7 @@
 		"type": "AzureSqlDW",
 		"typeProperties": {
 			"server": "synapse-workspace-dotpl-ondemand.sql.azuresynapse.net",
-			"database": "master",
+			"database": "my_user_db",
 			"encrypt": "mandatory",
 			"trustServerCertificate": false,
 			"authenticationType": "SystemAssignedManagedIdentity"
