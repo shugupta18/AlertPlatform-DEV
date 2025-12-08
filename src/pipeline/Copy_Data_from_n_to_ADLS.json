@@ -1,0 +1,34 @@
+{
+	"name": "Copy_Data_from_n_to_ADLS",
+	"properties": {
+		"activities": [
+			{
+				"name": "Script_process_data_on_adls",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "LS_SynapseAnalytics",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "SELECT\n  COALESCE(fromCity, '(NULL)') AS fromCity,\n  event_name,\n  COUNT(*) AS total_events,\n  MIN(PK_ID) AS sample_pk,\n  -- add more aggregates as needed\n  SYSUTCDATETIME() AS agg_run_utc\nFROM\n  OPENROWSET(\n    BULK 'https://dotpladlsv2.blob.core.windows.net/synapsecontainer/Staging/ITH/Indecab_Dashboard/Indecab_Network_Requests.parquet',\n    FORMAT = 'PARQUET'\n  ) WITH (\n    PK_ID BIGINT,\n    event_id VARCHAR(200),\n    event_name VARCHAR(500),\n    _id VARCHAR(200),\n    fromCity VARCHAR(200),\n    toCity VARCHAR(200)\n    -- add other columns here as needed\n  ) AS rows\nGROUP BY COALESCE(fromCity, '(NULL)'), event_name\nORDER BY total_events DESC;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"annotations": []
+	}
+}
