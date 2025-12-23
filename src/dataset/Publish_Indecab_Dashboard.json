@@ -5,6 +5,12 @@
 			"referenceName": "LS_ADLS_ITH_AlertPlatform",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"run_id": {
+				"type": "string",
+				"defaultValue": "@pipeline().RunId"
+			}
+		},
 		"annotations": [],
 		"type": "Parquet",
 		"typeProperties": {
