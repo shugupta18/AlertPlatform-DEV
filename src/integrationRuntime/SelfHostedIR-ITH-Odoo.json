@@ -1,0 +1,6 @@
+{
+	"name": "SelfHostedIR-ITH-Odoo",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}
