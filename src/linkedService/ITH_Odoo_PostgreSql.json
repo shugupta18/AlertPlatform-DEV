@@ -1,0 +1,21 @@
+{
+	"name": "ITH_Odoo_PostgreSql",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "PostgreSqlV2",
+		"typeProperties": {
+			"server": "216.48.184.195",
+			"port": 5432,
+			"database": "ithfleet_dev",
+			"username": "adf_reader",
+			"sslMode": 2,
+			"authenticationType": "Basic",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI4MTc0YThlZC05MzFmLTQyN2EtYTBkZC1hMzcxNDQwZTY2NzAiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "SelfHostedIR-ITH-Odoo",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
