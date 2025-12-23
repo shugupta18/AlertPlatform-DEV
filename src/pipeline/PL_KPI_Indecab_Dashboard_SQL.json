@@ -148,7 +148,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Script_process_data_on_adls",
+						"activity": "Script_processed_data_on_adls",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -192,7 +192,7 @@
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
-					"retry": 0,
+					"retry": 2,
 					"retryIntervalInSeconds": 30,
 					"secureOutput": false,
 					"secureInput": false
@@ -216,7 +216,7 @@
 				}
 			},
 			{
-				"name": "Script_process_data_on_adls",
+				"name": "Script_processed_data_on_adls",
 				"type": "Script",
 				"dependsOn": [
 					{
@@ -242,7 +242,7 @@
 					"scripts": [
 						{
 							"type": "Query",
-							"text": "SELECT\n  COALESCE(fromCity, '(NULL)') AS fromCity,\n  event_name,\n  COUNT(*) AS total_events,\n  MIN(PK_ID) AS sample_pk,\n  -- add more aggregates as needed\n  SYSUTCDATETIME() AS agg_run_utc\nFROM\n  OPENROWSET(\n    BULK 'https://dotpladlsv2.blob.core.windows.net/synapsecontainer/Staging/ITH/Indecab_Dashboard/Indecab_Network_Requests.parquet',\n    FORMAT = 'PARQUET'\n  ) WITH (\n    PK_ID BIGINT,\n    event_id VARCHAR(200),\n    event_name VARCHAR(500),\n    _id VARCHAR(200),\n    fromCity VARCHAR(200),\n    toCity VARCHAR(200)\n    -- add other columns here as needed\n  ) AS rows\nGROUP BY COALESCE(fromCity, '(NULL)'), event_name\nORDER BY total_events DESC;"
+							"text": "IF OBJECT_ID('dbo.booking_aggregates_ext') IS NOT NULL\n  DROP EXTERNAL TABLE dbo.booking_aggregates_ext;\nGO\n\nCREATE EXTERNAL TABLE dbo.booking_aggregates_ext\nWITH (\n  LOCATION = 'aggregates/Indecab_Network_Requests_Agg/',   -- relative to container root\n  DATA_SOURCE = MyAdlsBlob,\n  FILE_FORMAT = ParquetFileFormat\n)\nAS\nSELECT\n  COALESCE(fromCity, '(NULL)') AS fromCity,\n  event_name,\n  COUNT(*) AS total_events,\n  SYSUTCDATETIME() AS agg_run_utc\nFROM\n  OPENROWSET(\n    BULK 'Staging/ITH/Indecab_Dashboard/*.parquet',\n    DATA_SOURCE = 'MyAdlsBlob',\n    FORMAT = 'PARQUET'\n  ) WITH (\n    PK_ID BIGINT,\n    event_id VARCHAR(200),\n    event_name VARCHAR(500),\n    _id VARCHAR(200),\n    fromCity VARCHAR(200),\n    toCity VARCHAR(200)\n  ) AS rows\nGROUP BY COALESCE(fromCity, '(NULL)'), event_name;"
 						}
 					],
 					"scriptBlockExecutionTimeout": "02:00:00"
