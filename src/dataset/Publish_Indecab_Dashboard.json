@@ -16,7 +16,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"folderPath": "aggregates/Indecab_Network_Requests_Agg",
+				"folderPath": "aggregates/Indecab_Network_Requests_Agg/@{dataset().run_id}",
 				"fileSystem": "synapsecontainer"
 			},
 			"compressionCodec": "snappy"
