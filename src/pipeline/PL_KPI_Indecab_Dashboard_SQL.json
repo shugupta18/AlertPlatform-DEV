@@ -144,67 +144,11 @@
 				}
 			},
 			{
-				"name": "Indecab_Notebook",
-				"type": "SynapseNotebook",
-				"dependsOn": [
-					{
-						"activity": "Copy_network_requests_Indecab",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.01:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"notebook": {
-						"referenceName": {
-							"value": "Indecab_notebook",
-							"type": "Expression"
-						},
-						"type": "NotebookReference"
-					},
-					"parameters": {
-						"last_run_at_ist": {
-							"value": {
-								"value": "@json(variables('create_run_output_indecab')).last_run_at_ist",
-								"type": "Expression"
-							},
-							"type": "string"
-						}
-					},
-					"snapshot": true,
-					"sparkPool": {
-						"referenceName": {
-							"value": "sparkkpi",
-							"type": "Expression"
-						},
-						"type": "BigDataPoolReference"
-					},
-					"conf": {
-						"spark.dynamicAllocation.enabled": false,
-						"spark.dynamicAllocation.minExecutors": 1,
-						"spark.dynamicAllocation.maxExecutors": 1
-					},
-					"numExecutors": 1
-				},
-				"linkedServiceName": {
-					"referenceName": "LS_SynapseArtifacts",
-					"type": "LinkedServiceReference"
-				}
-			},
-			{
 				"name": "Run_finish_Indecab",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Indecab_Notebook",
+						"activity": "Script_process_data_on_adls",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -266,6 +210,39 @@
 								"value": "SELECT TOP 1 * \nFROM OPENROWSET(\n  BULK 'https://dotpladlsv2.blob.core.windows.net/synapsecontainer/aggregates/Indecab_Network_Requests_Agg/part-00000.parquet',\n  FORMAT='PARQUET'\n) AS t;\n",
 								"type": "Expression"
 							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Script_process_data_on_adls",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Copy_network_requests_Indecab",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "LS_SynapseAnalytics",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "SELECT\n  COALESCE(fromCity, '(NULL)') AS fromCity,\n  event_name,\n  COUNT(*) AS total_events,\n  MIN(PK_ID) AS sample_pk,\n  -- add more aggregates as needed\n  SYSUTCDATETIME() AS agg_run_utc\nFROM\n  OPENROWSET(\n    BULK 'https://dotpladlsv2.blob.core.windows.net/synapsecontainer/Staging/ITH/Indecab_Dashboard/Indecab_Network_Requests.parquet',\n    FORMAT = 'PARQUET'\n  ) WITH (\n    PK_ID BIGINT,\n    event_id VARCHAR(200),\n    event_name VARCHAR(500),\n    _id VARCHAR(200),\n    fromCity VARCHAR(200),\n    toCity VARCHAR(200)\n    -- add other columns here as needed\n  ) AS rows\nGROUP BY COALESCE(fromCity, '(NULL)'), event_name\nORDER BY total_events DESC;"
 						}
 					],
 					"scriptBlockExecutionTimeout": "02:00:00"
