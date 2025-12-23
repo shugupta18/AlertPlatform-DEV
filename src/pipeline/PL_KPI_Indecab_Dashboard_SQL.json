@@ -241,7 +241,7 @@
 				"typeProperties": {
 					"scripts": [
 						{
-							"type": "Query",
+							"type": "NonQuery",
 							"text": "IF OBJECT_ID('dbo.booking_aggregates_ext') IS NOT NULL\n  DROP EXTERNAL TABLE dbo.booking_aggregates_ext;\nGO\n\nCREATE EXTERNAL TABLE dbo.booking_aggregates_ext\nWITH (\n  LOCATION = 'aggregates/Indecab_Network_Requests_Agg/',   -- relative to container root\n  DATA_SOURCE = MyAdlsBlob,\n  FILE_FORMAT = ParquetFileFormat\n)\nAS\nSELECT\n  COALESCE(fromCity, '(NULL)') AS fromCity,\n  event_name,\n  COUNT(*) AS total_events,\n  SYSUTCDATETIME() AS agg_run_utc\nFROM\n  OPENROWSET(\n    BULK 'Staging/ITH/Indecab_Dashboard/*.parquet',\n    DATA_SOURCE = 'MyAdlsBlob',\n    FORMAT = 'PARQUET'\n  ) WITH (\n    PK_ID BIGINT,\n    event_id VARCHAR(200),\n    event_name VARCHAR(500),\n    _id VARCHAR(200),\n    fromCity VARCHAR(200),\n    toCity VARCHAR(200)\n  ) AS rows\nGROUP BY COALESCE(fromCity, '(NULL)'), event_name;"
 						}
 					],
