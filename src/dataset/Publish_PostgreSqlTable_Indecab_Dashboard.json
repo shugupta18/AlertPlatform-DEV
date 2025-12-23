@@ -1,0 +1,16 @@
+{
+	"name": "Publish_PostgreSqlTable_Indecab_Dashboard",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Odoo_PostgreSql",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "PostgreSqlV2Table",
+		"schema": [],
+		"typeProperties": {
+			"schema": "public",
+			"table": "alert_dashboard_record"
+		}
+	}
+}
