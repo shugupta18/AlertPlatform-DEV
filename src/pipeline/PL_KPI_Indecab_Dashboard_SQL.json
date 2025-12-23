@@ -5,14 +5,7 @@
 			{
 				"name": "Create_Run_Indecab",
 				"type": "Lookup",
-				"dependsOn": [
-					{
-						"activity": "Indecab_script",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 1,
@@ -184,35 +177,6 @@
 				"linkedServiceName": {
 					"referenceName": "LS_AzureSQL_ITHAlertPlatform",
 					"type": "LinkedServiceReference"
-				}
-			},
-			{
-				"name": "Indecab_script",
-				"type": "Script",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 2,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"linkedServiceName": {
-					"referenceName": "LS_SynapseAnalytics",
-					"type": "LinkedServiceReference"
-				},
-				"typeProperties": {
-					"scripts": [
-						{
-							"type": "Query",
-							"text": {
-								"value": "SELECT TOP 1 * \nFROM OPENROWSET(\n  BULK 'https://dotpladlsv2.blob.core.windows.net/synapsecontainer/aggregates/Indecab_Network_Requests_Agg/part-00000.parquet',\n  FORMAT='PARQUET'\n) AS t;\n",
-								"type": "Expression"
-							}
-						}
-					],
-					"scriptBlockExecutionTimeout": "02:00:00"
 				}
 			},
 			{
