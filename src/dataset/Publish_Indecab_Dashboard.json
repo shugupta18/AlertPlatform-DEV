@@ -1,0 +1,37 @@
+{
+	"name": "Publish_Indecab_Dashboard",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_ITH_AlertPlatform",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "aggregates/Indecab_Network_Requests_Agg",
+				"fileSystem": "synapsecontainer"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "fromCity",
+				"type": "UTF8"
+			},
+			{
+				"name": "event_name",
+				"type": "UTF8"
+			},
+			{
+				"name": "total_events",
+				"type": "INT_32"
+			},
+			{
+				"name": "agg_run_utc",
+				"type": "INT96"
+			}
+		]
+	}
+}
