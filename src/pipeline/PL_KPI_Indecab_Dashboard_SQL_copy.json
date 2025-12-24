@@ -1,0 +1,234 @@
+{
+	"name": "PL_KPI_Indecab_Dashboard_SQL_copy",
+	"properties": {
+		"activities": [
+			{
+				"name": "Create_Run_Indecab",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[sp_create_dashboard_run]",
+						"storedProcedureParameters": {
+							"integration_name": {
+								"type": "String",
+								"value": "Indecab_Dashboard"
+							},
+							"pipeline_name": {
+								"type": "String",
+								"value": "PL_KPI_Indecab_Dashboard"
+							},
+							"run_id": {
+								"type": "Guid",
+								"value": {
+									"value": "@pipeline().RunId",
+									"type": "Expression"
+								}
+							},
+							"started_at": {
+								"type": "DateTime",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_AzureSQL_Metadata",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Copy_network_requests_Indecab",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set_create_run_output_indecab",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "@concat(\n    'SELECT * FROM [dbo].[Indecab_duty_incoming_request_events] WHERE CDAT >= ''', \n    json(variables('create_run_output_indecab')).last_run_at_ist,\n    ''''\n)\n",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_RACDOTDB_Metadata",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_ADLS_Indecab_Duty_Incoming_Request_Events",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Set_create_run_output_indecab",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Create_Run_Indecab",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "create_run_output_indecab",
+					"value": {
+						"value": "@string(activity('Create_Run_Indecab').output.firstRow)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Run_finish_Indecab",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Script_processed_data_on_adls",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[sp_finish_dashboard_run]",
+					"storedProcedureParameters": {
+						"run_id": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"run_status": {
+							"value": "Success",
+							"type": "String"
+						},
+						"error_message": {
+							"value": null
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_ITHAlertPlatform",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Script_processed_data_on_adls",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Copy_network_requests_Indecab",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "LS_SynapseAnalytics",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "NonQuery",
+							"text": {
+								"value": "IF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'MyAdlsBlob')\nBEGIN\n  CREATE EXTERNAL DATA SOURCE MyAdlsBlob\n  WITH (\n    LOCATION = 'https://dotpladlsv2.blob.core.windows.net/synapsecontainer'\n  );\nEND\n\n\n\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'ParquetFileFormat')\nBEGIN\n  CREATE EXTERNAL FILE FORMAT ParquetFileFormat\n  WITH (\n    FORMAT_TYPE = PARQUET\n  );\nEND\n\n\nIF OBJECT_ID('dbo.booking_aggregates_ext') IS NOT NULL\n  DROP EXTERNAL TABLE dbo.booking_aggregates_ext;\n\n\nCREATE EXTERNAL TABLE dbo.booking_aggregates_ext\nWITH (\n  LOCATION = 'aggregates/Indecab_Network_Requests_Agg/@{pipeline().RunId}/',\n  DATA_SOURCE = MyAdlsBlob,\n  FILE_FORMAT = ParquetFileFormat\n)\nAS\nSELECT\n  COALESCE(fromCity, '(NULL)') AS fromCity,\n  event_name,\n  COUNT(*) AS total_events,\n  SYSUTCDATETIME() AS agg_run_utc\nFROM\n  OPENROWSET(\n    BULK 'Staging/ITH/Indecab_Dashboard/*.parquet',\n    DATA_SOURCE = 'MyAdlsBlob',\n    FORMAT = 'PARQUET'\n  ) WITH (\n    PK_ID BIGINT,\n    event_id VARCHAR(200),\n    event_name VARCHAR(500),\n    _id VARCHAR(200),\n    fromCity VARCHAR(200),\n    toCity VARCHAR(200)\n  ) AS rows\nGROUP BY COALESCE(fromCity, '(NULL)'), event_name;\n",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			}
+		],
+		"variables": {
+			"last_started": {
+				"type": "String"
+			},
+			"new_started": {
+				"type": "String"
+			},
+			"create_run_output_indecab": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-11-08T08:58:00Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
