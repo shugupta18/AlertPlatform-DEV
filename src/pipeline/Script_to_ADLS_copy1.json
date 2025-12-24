@@ -82,7 +82,10 @@
 						"referenceName": "Publish_Indecab_Dashboard",
 						"type": "DatasetReference",
 						"parameters": {
-							"run_id": "a67be67a-85a7-44c1-ac7d-59a77ff3fcbe"
+							"run_id": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							}
 						}
 					}
 				],
