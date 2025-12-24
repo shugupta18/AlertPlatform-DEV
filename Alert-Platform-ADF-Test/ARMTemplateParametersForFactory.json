@@ -5,6 +5,9 @@
 		"factoryName": {
 			"value": "Alert-Platform-ADF-Test"
 		},
+		"ITH_Odoo_PostgreSql_password": {
+			"value": ""
+		},
 		"LS_ADLS_ITH_AlertPlatform_accountKey": {
 			"value": ""
 		},
@@ -19,6 +22,15 @@
 		},
 		"RACDOTDB_MSSQL_password": {
 			"value": ""
+		},
+		"ITH_Odoo_PostgreSql_properties_typeProperties_server": {
+			"value": "216.48.184.195"
+		},
+		"ITH_Odoo_PostgreSql_properties_typeProperties_database": {
+			"value": "ithfleet_dev"
+		},
+		"ITH_Odoo_PostgreSql_properties_typeProperties_username": {
+			"value": "adf_reader"
 		},
 		"LS_ADLS_ITH_AlertPlatform_properties_typeProperties_url": {
 			"value": "https://dotpladlsv2.dfs.core.windows.net/"
@@ -41,6 +53,12 @@
 		"LS_MSSQL_RACDOTDB_properties_typeProperties_userName": {
 			"value": "RACPRO"
 		},
+		"LS_SynapseAnalytics_properties_typeProperties_server": {
+			"value": "synapse-workspace-dotpl-ondemand.sql.azuresynapse.net"
+		},
+		"LS_SynapseAnalytics_properties_typeProperties_database": {
+			"value": "my_user_db"
+		},
 		"LS_SynapseArtifacts_properties_typeProperties_endpoint": {
 			"value": "https://synapse-workspace-dotpl.dev.azuresynapse.net"
 		},
@@ -48,7 +66,7 @@
 			"value": "216.48.184.195"
 		},
 		"Odoo_PostgreSql_properties_typeProperties_database": {
-			"value": "ithfleet"
+			"value": "ithfleet_dev"
 		},
 		"Odoo_PostgreSql_properties_typeProperties_username": {
 			"value": "adf_reader"

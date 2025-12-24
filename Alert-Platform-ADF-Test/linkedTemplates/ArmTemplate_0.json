@@ -27,6 +27,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'RACDOTDB_MSSQL'"
 		},
+		"ITH_Odoo_PostgreSql_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'ITH_Odoo_PostgreSql'"
+		},
 		"LS_ADLS_ITH_AlertPlatform_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://dotpladlsv2.dfs.core.windows.net/"
@@ -55,6 +59,14 @@
 			"type": "string",
 			"defaultValue": "RACPRO"
 		},
+		"LS_SynapseAnalytics_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "synapse-workspace-dotpl-ondemand.sql.azuresynapse.net"
+		},
+		"LS_SynapseAnalytics_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "my_user_db"
+		},
 		"LS_SynapseArtifacts_properties_typeProperties_endpoint": {
 			"type": "string",
 			"defaultValue": "https://synapse-workspace-dotpl.dev.azuresynapse.net"
@@ -65,7 +77,7 @@
 		},
 		"Odoo_PostgreSql_properties_typeProperties_database": {
 			"type": "string",
-			"defaultValue": "ithfleet"
+			"defaultValue": "ithfleet_dev"
 		},
 		"Odoo_PostgreSql_properties_typeProperties_username": {
 			"type": "string",
@@ -82,6 +94,18 @@
 		"RACDOTDB_MSSQL_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "RACPRO"
+		},
+		"ITH_Odoo_PostgreSql_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "216.48.184.195"
+		},
+		"ITH_Odoo_PostgreSql_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "ithfleet_dev"
+		},
+		"ITH_Odoo_PostgreSql_properties_typeProperties_username": {
+			"type": "string",
+			"defaultValue": "adf_reader"
 		}
 	},
 	"variables": {
@@ -150,6 +174,23 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/LS_SynapseAnalytics')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"server": "[parameters('LS_SynapseAnalytics_properties_typeProperties_server')]",
+					"database": "[parameters('LS_SynapseAnalytics_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SystemAssignedManagedIdentity"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LS_SynapseArtifacts')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -210,6 +251,16 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/SelfHostedIR-ITH-Odoo')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Indecab_Duty_Incoming_Request_Events')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -236,6 +287,30 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_ITH_AlertPlatform')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_AzureSQL_Dashboard_Record')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_ITHAlertPlatform",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "ITH-AlertPlatform-Prod"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "dashboard_record"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_ITHAlertPlatform')]"
 			]
 		},
 		{
@@ -354,6 +429,57 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/Publish_Indecab_Dashboard')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_ITH_AlertPlatform",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"run_id": {
+						"type": "string",
+						"defaultValue": "@pipeline().RunId"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "aggregates/Indecab_Network_Requests_Agg/@{dataset().run_id}",
+							"type": "Expression"
+						},
+						"fileSystem": "synapsecontainer"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "fromCity",
+						"type": "UTF8"
+					},
+					{
+						"name": "event_name",
+						"type": "UTF8"
+					},
+					{
+						"name": "total_events",
+						"type": "INT_32"
+					},
+					{
+						"name": "agg_run_utc",
+						"type": "INT96"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_ITH_AlertPlatform')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/SourceDataset_tqp')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -455,142 +581,35 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Copy_data_tbl1_to_tbl2')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
+			"name": "[concat(parameters('factoryName'), '/ITH_Odoo_PostgreSql')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"activities": [
-					{
-						"name": "Copy_tqp",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [
-							{
-								"name": "Source",
-								"value": "dbo.kpi_details_proj1"
-							},
-							{
-								"name": "Destination",
-								"value": "dbo.kpi_details_proj1_destination"
-							}
-						],
-						"typeProperties": {
-							"source": {
-								"type": "SqlServerSource",
-								"partitionOption": "None"
-							},
-							"sink": {
-								"type": "SqlServerSink"
-							},
-							"enableStaging": false,
-							"validateDataConsistency": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"name": "record_id",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "record_id",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "integration_name",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "integration_name",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "status",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "status",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "remarks",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "remarks",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "refresh_timestamp",
-											"type": "DateTime",
-											"physicalType": "datetime"
-										},
-										"sink": {
-											"name": "refresh_timestamp",
-											"type": "DateTime",
-											"physicalType": "datetime"
-										}
-									}
-								],
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "SourceDataset_tqp",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "DestinationDataset_tqp",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
 				"annotations": [],
-				"lastPublishTime": "2025-11-07T09:14:38Z"
+				"type": "PostgreSqlV2",
+				"typeProperties": {
+					"server": "[parameters('ITH_Odoo_PostgreSql_properties_typeProperties_server')]",
+					"port": 5432,
+					"database": "[parameters('ITH_Odoo_PostgreSql_properties_typeProperties_database')]",
+					"username": "[parameters('ITH_Odoo_PostgreSql_properties_typeProperties_username')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('ITH_Odoo_PostgreSql_password')]"
+					},
+					"sslMode": 2,
+					"authenticationType": "Basic"
+				},
+				"connectVia": {
+					"referenceName": "SelfHostedIR-ITH-Odoo",
+					"type": "IntegrationRuntimeReference"
+				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SourceDataset_tqp')]",
-				"[concat(variables('factoryId'), '/datasets/DestinationDataset_tqp')]"
+				"[concat(variables('factoryId'), '/integrationRuntimes/SelfHostedIR-ITH-Odoo')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/PL_KPI_Indecab_Dashboard')]",
+			"name": "[concat(parameters('factoryName'), '/PL_KPI_Indecab_Dashboard_DEPRECATED')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -598,7 +617,14 @@
 					{
 						"name": "Create_Run_Indecab",
 						"type": "Lookup",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Indecab_script",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "0.12:00:00",
 							"retry": 1,
@@ -777,11 +803,11 @@
 								"type": "BigDataPoolReference"
 							},
 							"conf": {
-								"spark.dynamicAllocation.enabled": null,
-								"spark.dynamicAllocation.minExecutors": null,
-								"spark.dynamicAllocation.maxExecutors": null
+								"spark.dynamicAllocation.enabled": false,
+								"spark.dynamicAllocation.minExecutors": 1,
+								"spark.dynamicAllocation.maxExecutors": 1
 							},
-							"numExecutors": null
+							"numExecutors": 1
 						},
 						"linkedServiceName": {
 							"referenceName": "LS_SynapseArtifacts",
@@ -830,6 +856,35 @@
 							"referenceName": "LS_AzureSQL_ITHAlertPlatform",
 							"type": "LinkedServiceReference"
 						}
+					},
+					{
+						"name": "Indecab_script",
+						"type": "Script",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"linkedServiceName": {
+							"referenceName": "LS_SynapseAnalytics",
+							"type": "LinkedServiceReference"
+						},
+						"typeProperties": {
+							"scripts": [
+								{
+									"type": "Query",
+									"text": {
+										"value": "SELECT TOP 1 * \nFROM OPENROWSET(\n  BULK 'https://dotpladlsv2.blob.core.windows.net/synapsecontainer/aggregates/Indecab_Network_Requests_Agg/part-00000.parquet',\n  FORMAT='PARQUET'\n) AS t;\n",
+										"type": "Expression"
+									}
+								}
+							],
+							"scriptBlockExecutionTimeout": "02:00:00"
+						}
 					}
 				],
 				"policy": {
@@ -854,19 +909,77 @@
 				"[concat(variables('factoryId'), '/datasets/DS_RACDOTDB_Metadata')]",
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Indecab_Duty_Incoming_Request_Events')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_SynapseArtifacts')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_ITHAlertPlatform')]"
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_ITHAlertPlatform')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_SynapseAnalytics')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/PL_Odoo_To_SQL_Bookings')]",
+			"name": "[concat(parameters('factoryName'), '/PL_KPI_Indecab_Dashboard_SQL')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "Copy data1",
-						"type": "Copy",
+						"name": "Create_Run_Indecab",
+						"type": "Lookup",
 						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 1,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[sp_create_dashboard_run]",
+								"storedProcedureParameters": {
+									"integration_name": {
+										"type": "String",
+										"value": "Indecab_Dashboard"
+									},
+									"pipeline_name": {
+										"type": "String",
+										"value": "PL_KPI_Indecab_Dashboard"
+									},
+									"run_id": {
+										"type": "Guid",
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										}
+									},
+									"started_at": {
+										"type": "DateTime",
+										"value": {
+											"value": "@utcNow()",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "DS_AzureSQL_Metadata",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "Copy_network_requests_Indecab",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Set_create_run_output_indecab",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "0.12:00:00",
 							"retry": 0,
@@ -877,14 +990,22 @@
 						"userProperties": [],
 						"typeProperties": {
 							"source": {
-								"type": "PostgreSqlV2Source",
-								"query": "select id, name, booking_no, state, renter_fname, renter_lname, renter_email from sale_order",
-								"queryTimeout": "02:00:00"
+								"type": "SqlServerSource",
+								"sqlReaderQuery": {
+									"value": "@concat(\n  'SELECT * FROM [dbo].[Indecab_duty_incoming_request_events] WHERE CDAT >= ''',\n  formatDateTime(addDays(utcNow(), -365), 'yyyy-MM-dd HH:mm:ss'),\n  ''''\n)\n",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
 							},
 							"sink": {
-								"type": "SqlServerSink",
-								"writeBehavior": "insert",
-								"sqlWriterUseTableLock": true
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
 							},
 							"enableStaging": false,
 							"translator": {
@@ -898,14 +1019,190 @@
 						},
 						"inputs": [
 							{
-								"referenceName": "PostgreSqlTable1",
+								"referenceName": "DS_RACDOTDB_Metadata",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
 						],
 						"outputs": [
 							{
-								"referenceName": "SqlServerTable1",
+								"referenceName": "DS_ADLS_Indecab_Duty_Incoming_Request_Events",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Set_create_run_output_indecab",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Create_Run_Indecab",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "create_run_output_indecab",
+							"value": {
+								"value": "@string(activity('Create_Run_Indecab').output.firstRow)",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Run_finish_Indecab",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy_data_to_sql_table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 2,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[sp_finish_dashboard_run]",
+							"storedProcedureParameters": {
+								"run_id": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"run_status": {
+									"value": "Success",
+									"type": "String"
+								},
+								"error_message": {
+									"value": null
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_AzureSQL_ITHAlertPlatform",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Script_process_data_on_adls",
+						"type": "Script",
+						"dependsOn": [
+							{
+								"activity": "Copy_network_requests_Indecab",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 2,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"linkedServiceName": {
+							"referenceName": "LS_SynapseAnalytics",
+							"type": "LinkedServiceReference"
+						},
+						"typeProperties": {
+							"scripts": [
+								{
+									"type": "Query",
+									"text": {
+										"value": "IF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'MyAdlsBlob')\nBEGIN\n  CREATE EXTERNAL DATA SOURCE MyAdlsBlob\n  WITH (\n    LOCATION = 'https://dotpladlsv2.blob.core.windows.net/synapsecontainer'\n  );\nEND\n\n\n\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'ParquetFileFormat')\nBEGIN\n  CREATE EXTERNAL FILE FORMAT ParquetFileFormat\n  WITH (\n    FORMAT_TYPE = PARQUET\n  );\nEND\n\n\nIF OBJECT_ID('dbo.booking_aggregates_ext') IS NOT NULL\n  DROP EXTERNAL TABLE dbo.booking_aggregates_ext;\n\n\nCREATE EXTERNAL TABLE dbo.booking_aggregates_ext\nWITH (\n  LOCATION = 'aggregates/Indecab_Network_Requests_Agg/@{pipeline().RunId}/',\n  DATA_SOURCE = MyAdlsBlob,\n  FILE_FORMAT = ParquetFileFormat\n)\nAS\nSELECT DISTINCT\n    '@{pipeline().RunId}'      AS run_id,\n    'indecab_dashboard'        AS integration_name,\n\tPK_ID \t\t\t\t\t   AS record_id,\n    1 AS row_number,\n    status                     AS status,\n    CONCAT('status = ', status) AS details\nFROM OPENROWSET(\n    BULK 'Staging/ITH/Indecab_Dashboard/*.parquet',\n    DATA_SOURCE = 'MyAdlsBlob',\n    FORMAT = 'PARQUET'\n) WITH (\n    PK_ID INT,\n    event_id NVARCHAR(200),\n    received_signature NVARCHAR(200),\n    event_name NVARCHAR(200),\n    _id NVARCHAR(200),\n    fromCity NVARCHAR(200),\n    toCity NVARCHAR(200),\n    pickUpTime DATETIME,\n    dropOffTime DATETIME,\n    reportingTime TIME,\n    companyName NVARCHAR(200),\n    reportingAddress NVARCHAR(500),\n    dropAddress NVARCHAR(500),\n    dutyType_name NVARCHAR(200),\n    dutyType_type NVARCHAR(200),\n    dutyType_maxKms INT,\n    dutyType_maxHours INT,\n    vehicleGroup NVARCHAR(200),\n    requestHash NVARCHAR(200),\n    is_processed INT,\n    status NVARCHAR(200),\n    processed_datetime DATETIME,\n    API_response_code NVARCHAR(50),\n    API_response NVARCHAR(MAX),\n    CDAT DATETIME,\n    UIDC NVARCHAR(200),\n    MDAT DATETIME,\n    UIDM NVARCHAR(200)\n) r\nWHERE status IS NOT NULL;\n",
+										"type": "Expression"
+									}
+								}
+							],
+							"scriptBlockExecutionTimeout": "02:00:00"
+						}
+					},
+					{
+						"name": "Copy_data_to_sql_table",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Script_process_data_on_adls",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": {
+										"value": "aggregates/Indecab_Network_Requests_Agg/@{pipeline().RunId}",
+										"type": "Expression"
+									},
+									"wildcardFileName": "*.parquet",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "ParquetReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "UPDATE dashboard_record \nSET row_number = 0",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "Publish_Indecab_Dashboard",
+								"type": "DatasetReference",
+								"parameters": {
+									"run_id": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_AzureSQL_Dashboard_Record",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -915,12 +1212,28 @@
 				"policy": {
 					"elapsedTimeMetric": {}
 				},
+				"variables": {
+					"last_started": {
+						"type": "String"
+					},
+					"new_started": {
+						"type": "String"
+					},
+					"create_run_output_indecab": {
+						"type": "String"
+					}
+				},
 				"annotations": [],
-				"lastPublishTime": "2025-11-07T10:28:10Z"
+				"lastPublishTime": "2025-11-08T08:58:00Z"
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/PostgreSqlTable1')]",
-				"[concat(variables('factoryId'), '/datasets/SqlServerTable1')]"
+				"[concat(variables('factoryId'), '/datasets/DS_AzureSQL_Metadata')]",
+				"[concat(variables('factoryId'), '/datasets/DS_RACDOTDB_Metadata')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_Indecab_Duty_Incoming_Request_Events')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_ITHAlertPlatform')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_SynapseAnalytics')]",
+				"[concat(variables('factoryId'), '/datasets/Publish_Indecab_Dashboard')]",
+				"[concat(variables('factoryId'), '/datasets/DS_AzureSQL_Dashboard_Record')]"
 			]
 		}
 	]
