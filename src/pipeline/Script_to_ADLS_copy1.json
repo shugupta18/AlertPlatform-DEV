@@ -56,7 +56,10 @@
 						"storeSettings": {
 							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
-							"wildcardFolderPath": "aggregates/Indecab_Network_Requests_Agg/@{pipeline().parameters.run_id}",
+							"wildcardFolderPath": {
+								"value": "aggregates/Indecab_Network_Requests_Agg/@{pipeline().RunId}",
+								"type": "Expression"
+							},
 							"wildcardFileName": "*.parquet",
 							"enablePartitionDiscovery": false
 						},
