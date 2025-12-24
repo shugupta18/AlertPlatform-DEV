@@ -141,7 +141,7 @@
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Script_processed_data_on_adls",
+						"activity": "Copy_data_to_sql_table",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -180,11 +180,47 @@
 				}
 			},
 			{
-				"name": "Script_processed_data_on_adls",
+				"name": "Script_process_data_on_adls",
 				"type": "Script",
 				"dependsOn": [
 					{
 						"activity": "Copy_network_requests_Indecab",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "LS_SynapseAnalytics",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "IF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'MyAdlsBlob')\nBEGIN\n  CREATE EXTERNAL DATA SOURCE MyAdlsBlob\n  WITH (\n    LOCATION = 'https://dotpladlsv2.blob.core.windows.net/synapsecontainer'\n  );\nEND\n\n\n\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'ParquetFileFormat')\nBEGIN\n  CREATE EXTERNAL FILE FORMAT ParquetFileFormat\n  WITH (\n    FORMAT_TYPE = PARQUET\n  );\nEND\n\n\nIF OBJECT_ID('dbo.booking_aggregates_ext') IS NOT NULL\n  DROP EXTERNAL TABLE dbo.booking_aggregates_ext;\n\n\nCREATE EXTERNAL TABLE dbo.booking_aggregates_ext\nWITH (\n  LOCATION = 'aggregates/Indecab_Network_Requests_Agg/@{pipeline().RunId}/',\n  DATA_SOURCE = MyAdlsBlob,\n  FILE_FORMAT = ParquetFileFormat\n)\nAS\nSELECT DISTINCT\n    '@{pipeline().RunId}'      AS run_id,\n    'indecab_dashboard'        AS integration_name,\n\tPK_ID \t\t\t\t\t   AS record_id,\n    1 AS row_number,\n    status                     AS status,\n    CONCAT('status = ', status) AS details\nFROM OPENROWSET(\n    BULK 'Staging/ITH/Indecab_Dashboard/*.parquet',\n    DATA_SOURCE = 'MyAdlsBlob',\n    FORMAT = 'PARQUET'\n) WITH (\n    PK_ID INT,\n    event_id NVARCHAR(200),\n    received_signature NVARCHAR(200),\n    event_name NVARCHAR(200),\n    _id NVARCHAR(200),\n    fromCity NVARCHAR(200),\n    toCity NVARCHAR(200),\n    pickUpTime DATETIME,\n    dropOffTime DATETIME,\n    reportingTime TIME,\n    companyName NVARCHAR(200),\n    reportingAddress NVARCHAR(500),\n    dropAddress NVARCHAR(500),\n    dutyType_name NVARCHAR(200),\n    dutyType_type NVARCHAR(200),\n    dutyType_maxKms INT,\n    dutyType_maxHours INT,\n    vehicleGroup NVARCHAR(200),\n    requestHash NVARCHAR(200),\n    is_processed INT,\n    status NVARCHAR(200),\n    processed_datetime DATETIME,\n    API_response_code NVARCHAR(50),\n    API_response NVARCHAR(MAX),\n    CDAT DATETIME,\n    UIDC NVARCHAR(200),\n    MDAT DATETIME,\n    UIDM NVARCHAR(200)\n) r\nWHERE status IS NOT NULL;\n",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Copy_data_to_sql_table",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Script_process_data_on_adls",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -198,22 +234,58 @@
 					"secureInput": false
 				},
 				"userProperties": [],
-				"linkedServiceName": {
-					"referenceName": "LS_SynapseAnalytics",
-					"type": "LinkedServiceReference"
-				},
 				"typeProperties": {
-					"scripts": [
-						{
-							"type": "NonQuery",
-							"text": {
-								"value": "IF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'MyAdlsBlob')\nBEGIN\n  CREATE EXTERNAL DATA SOURCE MyAdlsBlob\n  WITH (\n    LOCATION = 'https://dotpladlsv2.blob.core.windows.net/synapsecontainer'\n  );\nEND\n\n\n\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'ParquetFileFormat')\nBEGIN\n  CREATE EXTERNAL FILE FORMAT ParquetFileFormat\n  WITH (\n    FORMAT_TYPE = PARQUET\n  );\nEND\n\n\nIF OBJECT_ID('dbo.booking_aggregates_ext') IS NOT NULL\n  DROP EXTERNAL TABLE dbo.booking_aggregates_ext;\n\n\nCREATE EXTERNAL TABLE dbo.booking_aggregates_ext\nWITH (\n  LOCATION = 'aggregates/Indecab_Network_Requests_Agg/@{pipeline().RunId}/',\n  DATA_SOURCE = MyAdlsBlob,\n  FILE_FORMAT = ParquetFileFormat\n)\nAS\nSELECT\n  COALESCE(fromCity, '(NULL)') AS fromCity,\n  event_name,\n  COUNT(*) AS total_events,\n  SYSUTCDATETIME() AS agg_run_utc\nFROM\n  OPENROWSET(\n    BULK 'Staging/ITH/Indecab_Dashboard/*.parquet',\n    DATA_SOURCE = 'MyAdlsBlob',\n    FORMAT = 'PARQUET'\n  ) WITH (\n    PK_ID BIGINT,\n    event_id VARCHAR(200),\n    event_name VARCHAR(500),\n    _id VARCHAR(200),\n    fromCity VARCHAR(200),\n    toCity VARCHAR(200)\n  ) AS rows\nGROUP BY COALESCE(fromCity, '(NULL)'), event_name;\n",
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "aggregates/Indecab_Network_Requests_Agg/@{pipeline().RunId}",
+								"type": "Expression"
+							},
+							"wildcardFileName": "*.parquet",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": "UPDATE dashboard_record \nSET row_number = 0",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Publish_Indecab_Dashboard",
+						"type": "DatasetReference",
+						"parameters": {
+							"run_id": {
+								"value": "@pipeline().RunId",
 								"type": "Expression"
 							}
 						}
-					],
-					"scriptBlockExecutionTimeout": "02:00:00"
-				}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_AzureSQL_Dashboard_Record",
+						"type": "DatasetReference"
+					}
+				]
 			}
 		],
 		"variables": {
