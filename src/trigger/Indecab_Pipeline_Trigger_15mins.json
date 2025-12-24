@@ -6,7 +6,7 @@
 		"pipelines": [
 			{
 				"pipelineReference": {
-					"referenceName": "PL_KPI_Indecab_Dashboard_SQL_copy",
+					"referenceName": "PL_KPI_Indecab_Dashboard_SQL",
 					"type": "PipelineReference"
 				}
 			}
