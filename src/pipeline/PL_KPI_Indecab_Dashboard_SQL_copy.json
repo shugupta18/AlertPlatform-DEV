@@ -74,7 +74,7 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "@concat(\n  'SELECT * FROM [dbo].[Indecab_duty_incoming_request_events] WHERE CDAT >= ''',\n  formatDateTime(addDays(utcNow(), -2), 'yyyy-MM-dd HH:mm:ss'),\n  ''''\n)\n",
+							"value": "@concat(\n  'SELECT * FROM [dbo].[Indecab_duty_incoming_request_events] WHERE CDAT >= ''',\n  formatDateTime(addDays(utcNow(), -365), 'yyyy-MM-dd HH:mm:ss'),\n  ''''\n)\n",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
