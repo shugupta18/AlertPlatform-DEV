@@ -1,0 +1,20 @@
+{
+	"name": "DS_AzureSQL_Dashboard_Record",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_ITHAlertPlatform",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "ITH-AlertPlatform-Prod"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "dashboard_record"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
