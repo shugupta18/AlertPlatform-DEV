@@ -1,0 +1,20 @@
+{
+	"name": "DS_AzureSQL_STG_request_events",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_ITHAlertPlatform",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "ITH-AlertPlatform-Prod"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "stg_indecab_duty_incoming_request_events"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
