@@ -2,11 +2,17 @@
 	"name": "Indecab_Pipeline_Trigger_15mins",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Stopped",
+		"runtimeState": "Started",
 		"pipelines": [
 			{
 				"pipelineReference": {
 					"referenceName": "PL_KPI_Indecab_Dashboard_SQL",
+					"type": "PipelineReference"
+				}
+			},
+			{
+				"pipelineReference": {
+					"referenceName": "PL_KPI_Indecab_Dashboard_SQL_optimized",
 					"type": "PipelineReference"
 				}
 			}
