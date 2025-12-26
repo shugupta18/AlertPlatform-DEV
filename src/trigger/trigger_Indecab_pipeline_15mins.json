@@ -2,7 +2,7 @@
 	"name": "trigger_Indecab_pipeline_15mins",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Stopped",
+		"runtimeState": "Started",
 		"pipelines": [
 			{
 				"pipelineReference": {
